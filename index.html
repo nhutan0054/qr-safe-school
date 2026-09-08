@@ -41,37 +41,64 @@ label{display:block;font-weight:700;margin:14px 0 6px}input,select,textarea{widt
 <script>
 const API_URL='https://script.google.com/macros/s/AKfycbwzzZd-9ma2VIDQaLYEbBUPkdreNHmmZvhokE9OLPqBYX2xKqZpPMvqq2ffY0huhGVF/exec';
 const LOCATIONS=['Lớp 5.3','Hành lang tầng 1','Hành lang tầng 2','Cầu thang khu A','Cầu thang khu B','Sân trường','Nhà vệ sinh tầng 1','Nhà vệ sinh tầng 2','Thư viện','Khu vực nước uống'];
-const KEY='qrsafeschool_reports_v1';const $=s=>document.querySelector(s);const $$=s=>document.querySelectorAll(s);
-function load(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}}function save(d){localStorage.setItem(KEY,JSON.stringify(d))}
-function fmt(t){return new Date(t).toLocaleString('vi-VN')}
-function id(){return 'QS-'+Date.now().toString().slice(-6)}
-function statusBadge(s){const c=s==='Đã xử lý'?'b-green':s==='Đang xử lý'?'b-yellow':'b-red';return `<span class="badge ${c}">${s}</span>`}
+const $=s=>document.querySelector(s);const $$=s=>document.querySelectorAll(s);
+let liveData=[];
+function fmt(t){if(!t)return ''; const d=new Date(t); return isNaN(d)?String(t):d.toLocaleString('vi-VN')}
+function statusBadge(s){const c=s==='Đã xử lý'?'b-green':s==='Đang xử lý'?'b-yellow':'b-red';return `<span class="badge ${c}">${s||'Chưa xử lý'}</span>`}
 LOCATIONS.forEach(x=>$('#location').insertAdjacentHTML('beforeend',`<option>${x}</option>`));
 const qs=new URLSearchParams(location.search);if(qs.get('location')){let v=qs.get('location');if(!LOCATIONS.includes(v)){LOCATIONS.push(v);$('#location').insertAdjacentHTML('beforeend',`<option>${v}</option>`)}$('#location').value=v;$('#currentLoc').textContent=v}else $('#currentLoc').textContent='Chưa chọn';
 $('#location').addEventListener('change',e=>$('#currentLoc').textContent=e.target.value||'Chưa chọn');
-$$('.tab').forEach(b=>b.onclick=()=>{ $$('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');$$('.section').forEach(x=>x.classList.remove('active'));$('#'+b.dataset.tab).classList.add('active');if(b.dataset.tab==='dashboard')render(); });
+$$('.tab').forEach(b=>b.onclick=()=>{ $$('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');$$('.section').forEach(x=>x.classList.remove('active'));$('#'+b.dataset.tab).classList.add('active');if(b.dataset.tab==='dashboard')loadDashboard(); });
 $('#reportForm').onsubmit=async e=>{e.preventDefault();
   const btn=e.submitter; if(btn){btn.disabled=true;btn.textContent='Đang gửi...'}
-  const payload={viTri:$('#location').value,loaiVanDe:$('#category').value,mucDo:$('#priority').value,moTa:$('#description').value.trim(),nguoiPhanAnh:$('#reporter').value.trim()};
+  const payload={action:'create',viTri:$('#location').value,loaiVanDe:$('#category').value,mucDo:$('#priority').value,moTa:$('#description').value.trim(),nguoiPhanAnh:$('#reporter').value.trim()};
   $('#successBox').style.display='block';$('#successBox').innerHTML='⏳ Đang gửi phản ánh lên hệ thống...';
   try{
     const res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
     const out=await res.json();
-    if(!out.success) throw new Error('API trả về lỗi');
+    if(!out.success) throw new Error(out.message||'API trả về lỗi');
     $('#successBox').innerHTML=`✅ Đã ghi nhận phản ánh <strong>${out.maPhanAnh}</strong> tại <strong>${payload.viTri}</strong>. Dữ liệu đã lưu vào Google Sheet.`;
     $('#description').value='';$('#reporter').value='';
   }catch(err){
-    $('#successBox').innerHTML='❌ Chưa gửi được dữ liệu. Vui lòng kiểm tra lại kết nối hoặc quyền Web App.';
-    console.error(err);
+    $('#successBox').innerHTML='❌ Chưa gửi được dữ liệu. Vui lòng kiểm tra kết nối hoặc quyền Web App.';console.error(err);
   }finally{if(btn){btn.disabled=false;btn.textContent='Gửi phản ánh'}}
 };
 $('#demoBtn').onclick=()=>{$('#location').value='Nhà vệ sinh tầng 2';$('#category').value='Nước / vòi nước';$('#description').value='Vòi nước bị rò, nước chảy liên tục.';$('#priority').value='Cần xử lý sớm';$('#currentLoc').textContent='Nhà vệ sinh tầng 2'};
-function render(){const d=load();$('#kpiTotal').textContent=d.length;$('#kpiOpen').textContent=d.filter(x=>x.status==='Chưa xử lý').length;$('#kpiProgress').textContent=d.filter(x=>x.status==='Đang xử lý').length;$('#kpiDone').textContent=d.filter(x=>x.status==='Đã xử lý').length;const rows=$('#reportRows');rows.innerHTML='';if(!d.length){rows.innerHTML='<tr><td colspan="7" class="empty">Chưa có phản ánh. Có thể nạp dữ liệu demo để trình diễn.</td></tr>'}d.forEach((r,i)=>{rows.insertAdjacentHTML('beforeend',`<tr><td><strong>${r.id}</strong><div class="muted small">${r.description}</div></td><td>${fmt(r.time)}</td><td>${r.location}</td><td>${r.category}</td><td>${r.priority}</td><td>${statusBadge(r.status)}</td><td><select onchange="updateStatus('${r.id}',this.value)"><option ${r.status==='Chưa xử lý'?'selected':''}>Chưa xử lý</option><option ${r.status==='Đang xử lý'?'selected':''}>Đang xử lý</option><option ${r.status==='Đã xử lý'?'selected':''}>Đã xử lý</option></select></td></tr>`)});summaries(d)}
-window.updateStatus=(rid,s)=>{const d=load();const r=d.find(x=>x.id===rid);if(r){r.status=s;r.updated=new Date().toISOString();save(d);render()}}
-function summaries(d){const count=k=>d.reduce((a,x)=>(a[x[k]]=(a[x[k]]||0)+1,a),{});const html=o=>Object.entries(o).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div style="margin:8px 0"><strong>${k}</strong> — ${v} phản ánh</div>`).join('')||'Chưa có dữ liệu';$('#hotspots').innerHTML=html(count('location'));$('#categories').innerHTML=html(count('category'))}
-$('#seedBtn').onclick=()=>{const now=Date.now();const demo=[['Nhà vệ sinh tầng 2','Nước / vòi nước','Vòi nước bị rò','Cần xử lý sớm','Chưa xử lý'],['Lớp 5.3','Điện / đèn / quạt','Quạt trần hoạt động yếu','Thông thường','Đang xử lý'],['Cầu thang khu A','An toàn','Tay vịn có dấu hiệu lỏng','Cần xử lý sớm','Đã xử lý'],['Sân trường','Cây xanh / sân trường','Khu vực sau mưa còn đọng nước','Thông thường','Chưa xử lý']].map((x,i)=>({id:'QS-DEMO'+(i+1),time:new Date(now-i*3600000).toISOString(),location:x[0],category:x[1],description:x[2],priority:x[3],status:x[4],reporter:'Giáo viên'}));save(demo);render()};
-$('#clearBtn').onclick=()=>{if(confirm('Xóa toàn bộ dữ liệu demo/phản ánh trên trình duyệt này?')){localStorage.removeItem(KEY);render()}};
-$('#exportBtn').onclick=()=>{const d=load();const esc=v=>'"'+String(v??'').replaceAll('"','""')+'"';const csv='\ufeff'+[['Mã','Thời gian','Vị trí','Loại vấn đề','Mô tả','Mức độ','Trạng thái','Người phản ánh'],...d.map(r=>[r.id,fmt(r.time),r.location,r.category,r.description,r.priority,r.status,r.reporter])].map(row=>row.map(esc).join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='QR_SAFE_SCHOOL_du_lieu.csv';a.click()};
-render();
+
+async function loadDashboard(){
+  const rows=$('#reportRows'); rows.innerHTML='<tr><td colspan="7" class="empty">⏳ Đang tải dữ liệu thật từ Google Sheet...</td></tr>';
+  try{
+    const res=await fetch(API_URL+'?t='+Date.now());
+    const data=await res.json();
+    liveData=(Array.isArray(data)?data:[]).filter(r=>String(r.maPhanAnh||'').startsWith('PA-'));
+    renderLive();
+  }catch(err){
+    console.error(err); rows.innerHTML='<tr><td colspan="7" class="empty">❌ Không tải được dữ liệu. Hãy kiểm tra Apps Script/Web App.</td></tr>';
+  }
+}
+function renderLive(){
+  const d=liveData;
+  $('#kpiTotal').textContent=d.length;
+  $('#kpiOpen').textContent=d.filter(x=>(x.trangThai||'Chưa xử lý')==='Chưa xử lý').length;
+  $('#kpiProgress').textContent=d.filter(x=>x.trangThai==='Đang xử lý').length;
+  $('#kpiDone').textContent=d.filter(x=>x.trangThai==='Đã xử lý').length;
+  const rows=$('#reportRows');rows.innerHTML='';
+  if(!d.length){rows.innerHTML='<tr><td colspan="7" class="empty">Chưa có phản ánh thật trong Google Sheet.</td></tr>'}
+  d.slice().reverse().forEach(r=>{rows.insertAdjacentHTML('beforeend',`<tr><td><strong>${r.maPhanAnh}</strong><div class="muted small">${escapeHtml(r.moTa||'')}</div></td><td>${fmt(r.thoiGian)}</td><td>${escapeHtml(r.viTri||'')}</td><td>${escapeHtml(r.loaiVanDe||'')}</td><td>${escapeHtml(r.mucDo||'')}</td><td>${statusBadge(r.trangThai)}</td><td><select onchange="updateStatus('${r.maPhanAnh}',this.value,this)"><option ${(r.trangThai||'Chưa xử lý')==='Chưa xử lý'?'selected':''}>Chưa xử lý</option><option ${r.trangThai==='Đang xử lý'?'selected':''}>Đang xử lý</option><option ${r.trangThai==='Đã xử lý'?'selected':''}>Đã xử lý</option></select></td></tr>`)});
+  summaries(d);
+}
+function escapeHtml(v){return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+window.updateStatus=async(ma,trangThai,el)=>{
+  el.disabled=true;
+  try{
+    const res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'updateStatus',maPhanAnh:ma,trangThai})});
+    const out=await res.json(); if(!out.success)throw new Error(out.message||'Không cập nhật được');
+    await loadDashboard();
+  }catch(err){alert('Chưa cập nhật được trạng thái. Hãy kiểm tra Apps Script.');console.error(err);el.disabled=false;}
+}
+function summaries(d){const count=k=>d.reduce((a,x)=>{const v=x[k]||'Khác';a[v]=(a[v]||0)+1;return a},{});const html=o=>Object.entries(o).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div style="margin:8px 0"><strong>${escapeHtml(k)}</strong> — ${v} phản ánh</div>`).join('')||'Chưa có dữ liệu';$('#hotspots').innerHTML=html(count('viTri'));$('#categories').innerHTML=html(count('loaiVanDe'))}
+$('#seedBtn').style.display='none';
+$('#clearBtn').style.display='none';
+$('#exportBtn').onclick=()=>{const d=liveData;const esc=v=>'"'+String(v??'').replaceAll('"','""')+'"';const csv='\ufeff'+[['Mã','Thời gian','Vị trí','Loại vấn đề','Mô tả','Mức độ','Trạng thái'],...d.map(r=>[r.maPhanAnh,fmt(r.thoiGian),r.viTri,r.loaiVanDe,r.moTa,r.mucDo,r.trangThai])].map(row=>row.map(esc).join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='QR_SAFE_SCHOOL_du_lieu_that.csv';a.click()};
 </script>
 </body></html>
