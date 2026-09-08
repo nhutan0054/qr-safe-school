@@ -39,6 +39,7 @@ label{display:block;font-weight:700;margin:14px 0 6px}input,select,textarea{widt
 <div class="footer">Phiên bản mẫu phục vụ Hội thi ứng dụng khoa học - công nghệ, đổi mới sáng tạo phường Chợ Quán năm 2026.</div>
 </main>
 <script>
+const API_URL='https://script.google.com/macros/s/AKfycbwzzZd-9ma2VIDQaLYEbBUPkdreNHmmZvhokE9OLPqBYX2xKqZpPMvqq2ffY0huhGVF/exec';
 const LOCATIONS=['Lớp 5.3','Hành lang tầng 1','Hành lang tầng 2','Cầu thang khu A','Cầu thang khu B','Sân trường','Nhà vệ sinh tầng 1','Nhà vệ sinh tầng 2','Thư viện','Khu vực nước uống'];
 const KEY='qrsafeschool_reports_v1';const $=s=>document.querySelector(s);const $$=s=>document.querySelectorAll(s);
 function load(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}}function save(d){localStorage.setItem(KEY,JSON.stringify(d))}
@@ -49,7 +50,21 @@ LOCATIONS.forEach(x=>$('#location').insertAdjacentHTML('beforeend',`<option>${x}
 const qs=new URLSearchParams(location.search);if(qs.get('location')){let v=qs.get('location');if(!LOCATIONS.includes(v)){LOCATIONS.push(v);$('#location').insertAdjacentHTML('beforeend',`<option>${v}</option>`)}$('#location').value=v;$('#currentLoc').textContent=v}else $('#currentLoc').textContent='Chưa chọn';
 $('#location').addEventListener('change',e=>$('#currentLoc').textContent=e.target.value||'Chưa chọn');
 $$('.tab').forEach(b=>b.onclick=()=>{ $$('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');$$('.section').forEach(x=>x.classList.remove('active'));$('#'+b.dataset.tab).classList.add('active');if(b.dataset.tab==='dashboard')render(); });
-$('#reportForm').onsubmit=e=>{e.preventDefault();const r={id:id(),time:new Date().toISOString(),location:$('#location').value,category:$('#category').value,description:$('#description').value.trim(),priority:$('#priority').value,reporter:$('#reporter').value.trim(),status:'Chưa xử lý'};const d=load();d.unshift(r);save(d);$('#successBox').style.display='block';$('#successBox').innerHTML=`✅ Đã ghi nhận phản ánh <strong>${r.id}</strong> tại <strong>${r.location}</strong>.`;$('#description').value='';$('#reporter').value='';};
+$('#reportForm').onsubmit=async e=>{e.preventDefault();
+  const btn=e.submitter; if(btn){btn.disabled=true;btn.textContent='Đang gửi...'}
+  const payload={viTri:$('#location').value,loaiVanDe:$('#category').value,mucDo:$('#priority').value,moTa:$('#description').value.trim(),nguoiPhanAnh:$('#reporter').value.trim()};
+  $('#successBox').style.display='block';$('#successBox').innerHTML='⏳ Đang gửi phản ánh lên hệ thống...';
+  try{
+    const res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
+    const out=await res.json();
+    if(!out.success) throw new Error('API trả về lỗi');
+    $('#successBox').innerHTML=`✅ Đã ghi nhận phản ánh <strong>${out.maPhanAnh}</strong> tại <strong>${payload.viTri}</strong>. Dữ liệu đã lưu vào Google Sheet.`;
+    $('#description').value='';$('#reporter').value='';
+  }catch(err){
+    $('#successBox').innerHTML='❌ Chưa gửi được dữ liệu. Vui lòng kiểm tra lại kết nối hoặc quyền Web App.';
+    console.error(err);
+  }finally{if(btn){btn.disabled=false;btn.textContent='Gửi phản ánh'}}
+};
 $('#demoBtn').onclick=()=>{$('#location').value='Nhà vệ sinh tầng 2';$('#category').value='Nước / vòi nước';$('#description').value='Vòi nước bị rò, nước chảy liên tục.';$('#priority').value='Cần xử lý sớm';$('#currentLoc').textContent='Nhà vệ sinh tầng 2'};
 function render(){const d=load();$('#kpiTotal').textContent=d.length;$('#kpiOpen').textContent=d.filter(x=>x.status==='Chưa xử lý').length;$('#kpiProgress').textContent=d.filter(x=>x.status==='Đang xử lý').length;$('#kpiDone').textContent=d.filter(x=>x.status==='Đã xử lý').length;const rows=$('#reportRows');rows.innerHTML='';if(!d.length){rows.innerHTML='<tr><td colspan="7" class="empty">Chưa có phản ánh. Có thể nạp dữ liệu demo để trình diễn.</td></tr>'}d.forEach((r,i)=>{rows.insertAdjacentHTML('beforeend',`<tr><td><strong>${r.id}</strong><div class="muted small">${r.description}</div></td><td>${fmt(r.time)}</td><td>${r.location}</td><td>${r.category}</td><td>${r.priority}</td><td>${statusBadge(r.status)}</td><td><select onchange="updateStatus('${r.id}',this.value)"><option ${r.status==='Chưa xử lý'?'selected':''}>Chưa xử lý</option><option ${r.status==='Đang xử lý'?'selected':''}>Đang xử lý</option><option ${r.status==='Đã xử lý'?'selected':''}>Đã xử lý</option></select></td></tr>`)});summaries(d)}
 window.updateStatus=(rid,s)=>{const d=load();const r=d.find(x=>x.id===rid);if(r){r.status=s;r.updated=new Date().toISOString();save(d);render()}}
