@@ -13,14 +13,14 @@ nav{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}.tab{border:0;border-rad
 main{max-width:1100px;margin:24px auto;padding:0 16px 48px}.section{display:none}.section.active{display:block}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}.card{background:var(--card);border-radius:18px;padding:20px;box-shadow:0 6px 24px #17324d12;border:1px solid #e7edf2}.span6{grid-column:span 6}.span12{grid-column:span 12}.span4{grid-column:span 4}.span3{grid-column:span 3}
 @media(max-width:800px){.span6,.span4,.span3{grid-column:span 12}.brand h1{font-size:18px}}
 h2{margin:0 0 8px;color:var(--navy)}h3{margin:0 0 10px}.lead{color:var(--muted);margin-top:4px;line-height:1.55}.badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;font-weight:700;font-size:13px}.b-red{background:#fee2e2;color:#991b1b}.b-yellow{background:#fef3c7;color:#92400e}.b-green{background:#dcfce7;color:#166534}.b-blue{background:#dbeafe;color:#1e40af}
-label{display:block;font-weight:700;margin:14px 0 6px}input,select,textarea{width:100%;padding:12px 13px;border:1px solid #cfd8e3;border-radius:12px;font-size:15px;background:#fff}textarea{min-height:100px;resize:vertical}.btn{border:0;border-radius:12px;padding:11px 16px;font-weight:700;cursor:pointer}.primary{background:var(--navy);color:#fff}.secondary{background:#e8f5f8;color:#075b6f}.danger{background:#fee2e2;color:#991b1b}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.kpi{font-size:28px;font-weight:800;color:var(--navy)}.kpi-label{color:var(--muted);font-size:13px}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:12px 10px;border-bottom:1px solid #edf1f5;vertical-align:top}th{color:var(--navy);background:#f8fafc;position:sticky;top:0}.muted{color:var(--muted)}.empty{padding:28px;text-align:center;color:var(--muted)}.callout{border-left:5px solid var(--cyan);background:#ecfeff;padding:14px 16px;border-radius:12px}.hero{background:linear-gradient(135deg,#ffffff,#edf9fc)}.hero strong{color:var(--navy)}.loc-chip{display:inline-block;background:#eff6ff;color:#1d4ed8;padding:6px 10px;border-radius:999px;font-weight:700}.small{font-size:12px}.footer{margin-top:28px;color:#667085;text-align:center;font-size:12px}
+label{display:block;font-weight:700;margin:14px 0 6px}input,select,textarea{width:100%;padding:12px 13px;border:1px solid #cfd8e3;border-radius:12px;font-size:15px;background:#fff}textarea{min-height:100px;resize:vertical}.btn{border:0;border-radius:12px;padding:11px 16px;font-weight:700;cursor:pointer}.primary{background:var(--navy);color:#fff}.secondary{background:#e8f5f8;color:#075b6f}.danger{background:#fee2e2;color:#991b1b}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.kpi{font-size:28px;font-weight:800;color:var(--navy)}.kpi-label{color:var(--muted);font-size:13px}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:14px}th,td{text-align:left;padding:12px 10px;border-bottom:1px solid #edf1f5;vertical-align:top}th{color:var(--navy);background:#f8fafc;position:sticky;top:0}.muted{color:var(--muted)}.empty{padding:28px;text-align:center;color:var(--muted)}.callout{border-left:5px solid var(--cyan);background:#ecfeff;padding:14px 16px;border-radius:12px}.hero{background:linear-gradient(135deg,#ffffff,#edf9fc)}.hero strong{color:var(--navy)}.loc-chip{display:inline-block;background:#eff6ff;color:#1d4ed8;padding:6px 10px;border-radius:999px;font-weight:700}.qr-locked{background:#f0fdf4!important;border-color:#86efac!important;color:#166534!important;font-weight:700}.qr-note{margin-top:8px;color:#166534;font-size:13px;font-weight:700}.small{font-size:12px}.footer{margin-top:28px;color:#667085;text-align:center;font-size:12px}
 </style>
 </head>
 <body>
 <header><div class="wrap"><div class="brand"><div class="logo">🛡️</div><div><h1>QR SAFE SCHOOL</h1><small>Trường Tiểu học Lê Văn Tám • Phản ánh - Theo dõi - Xử lý</small></div></div><nav><button class="tab active" data-tab="report">📱 Gửi phản ánh</button><button class="tab" data-tab="dashboard">📊 Dashboard</button><button class="tab" data-tab="about">💡 Giới thiệu</button></nav></div></header>
 <main>
 <section id="report" class="section active"><div class="grid">
-<div class="card span6 hero"><h2>Phản ánh nhanh sự cố</h2><p class="lead">Quét mã QR tại khu vực hoặc chọn vị trí. Nội dung không thu thập thông tin cá nhân học sinh.</p><div class="callout">Vị trí hiện tại: <span id="currentLoc" class="loc-chip">Chưa chọn</span></div></div>
+<div class="card span6 hero"><h2>Phản ánh nhanh sự cố</h2><p class="lead">Quét mã QR tại khu vực để hệ thống tự nhận vị trí; khi mở trực tiếp, người dùng vẫn có thể chọn vị trí. Nội dung không thu thập thông tin cá nhân học sinh.</p><div class="callout">Vị trí hiện tại: <span id="currentLoc" class="loc-chip">Chưa chọn</span></div></div>
 <div class="card span6"><h3>Quy trình 4 bước</h3><p class="lead">1. Chọn vị trí → 2. Chọn loại sự cố → 3. Mô tả ngắn → 4. Gửi phản ánh.</p><span class="badge b-blue">Mã phản ánh tự động</span></div>
 <div class="card span12">
 <form id="reportForm">
@@ -46,8 +46,27 @@ let liveData=[];
 function fmt(t){if(!t)return ''; const d=new Date(t); return isNaN(d)?String(t):d.toLocaleString('vi-VN')}
 function statusBadge(s){const c=s==='Đã xử lý'?'b-green':s==='Đang xử lý'?'b-yellow':'b-red';return `<span class="badge ${c}">${s||'Chưa xử lý'}</span>`}
 LOCATIONS.forEach(x=>$('#location').insertAdjacentHTML('beforeend',`<option>${x}</option>`));
-const qs=new URLSearchParams(location.search);if(qs.get('location')){let v=qs.get('location');if(!LOCATIONS.includes(v)){LOCATIONS.push(v);$('#location').insertAdjacentHTML('beforeend',`<option>${v}</option>`)}$('#location').value=v;$('#currentLoc').textContent=v}else $('#currentLoc').textContent='Chưa chọn';
-$('#location').addEventListener('change',e=>$('#currentLoc').textContent=e.target.value||'Chưa chọn');
+const qs=new URLSearchParams(location.search);
+const qrLocation=qs.get('location');
+if(qrLocation){
+  let v=qrLocation;
+  if(!LOCATIONS.includes(v)){
+    LOCATIONS.push(v);
+    $('#location').insertAdjacentHTML('beforeend',`<option>${v}</option>`);
+  }
+  $('#location').value=v;
+  $('#currentLoc').textContent='📍 '+v;
+  $('#location').classList.add('qr-locked');
+  $('#location').style.pointerEvents='none';
+  $('#location').setAttribute('aria-readonly','true');
+  const note=document.createElement('div');
+  note.className='qr-note';
+  note.textContent='✓ Vị trí được nhận tự động từ mã QR tại khu vực này.';
+  $('#location').parentElement.appendChild(note);
+}else{
+  $('#currentLoc').textContent='Chưa chọn';
+}
+$('#location').addEventListener('change',e=>$('#currentLoc').textContent=e.target.value?('📍 '+e.target.value):'Chưa chọn');
 $$('.tab').forEach(b=>b.onclick=()=>{ $$('.tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');$$('.section').forEach(x=>x.classList.remove('active'));$('#'+b.dataset.tab).classList.add('active');if(b.dataset.tab==='dashboard')loadDashboard(); });
 $('#reportForm').onsubmit=async e=>{e.preventDefault();
   const btn=e.submitter; if(btn){btn.disabled=true;btn.textContent='Đang gửi...'}
